@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  
+  node:
+    build: 
+      context: node
+    container_name: node
+    # Aqui está executando o npm install dentro do container, caso usar dessa forma tirar do Dockerfile
+    #entrypoint: wait-for db:3306 -t 40 -- npm install node index.js
+    entrypoint: wait-for db:3306 -t 40 -- node index.js
+    networks:
+      - node-network
+    #Remover, linha abaixo, caso estaja usando o npm install no entrypoint
+    volumes:
+      - ./node:/usr/src/app
+      - /usr/src/app/node_modules
+    tty: true
+    depends_on:
+      - db
+
+  nginx:
+    build:
+      context: nginx
+    container_name: nginx
+    networks:
+      - node-network
+    tty: true
+    ports:
+      - 8080:80
+
+  db:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks: 
+      - node-network
+
+networks:
+  node-network:
+    driver: bridge        
