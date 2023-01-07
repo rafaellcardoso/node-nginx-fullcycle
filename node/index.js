@@ -14,31 +14,35 @@ const connection = mysql.createConnection(config)
 
 connection.connect(function(err) {
     if (err) throw err;
-    console.log("Connected!");
-    var sql = "CREATE TABLE people (id int not null auto_increment, name VARCHAR(255), primary key(id))";
-    connection.query(sql, function (err, result) {
-      if (err) throw err;
-      console.log("Table created");
+    console.log("---> Connected! <---");
+    
+    let sql = `CREATE TABLE people (id int primary key auto_increment, name varchar(255))`
+    connection.query(sql, function(err, results, fields){
+        if (err) {
+            console.log(err.message)
+        }
+        console.log("--->  Table created <---");
     })
-})
 
-const sql = `INSERT INTO people(name) values('Rafael')`
-connection.query(sql)
-connection.end()
+    sql = `INSERT INTO people(name) values('Rafael')`
+    connection.query(sql)
+    console.log("---> Inserted <---");
+})
 
 app.get('/', (req, res) => {
     let name = '';
     connection.query('SELECT name FROM people', (err, result) => {
         if (err) throw err;
         let message = `<h1>Full Cycle Rocks!</h1>
-        <p>- Lista de nomes cadastrada </p>
+        <p> Lista de nomes cadastrada </p>
         <ul>`;
         result.forEach(element => {
             message += `<li>${element.name}</li>`;
         });
         message += '</ul>';
         res.send(message)
-    })    
+    }) 
+    connection.end()   
 })
 
 app.listen(port, () => {
